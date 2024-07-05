@@ -1,0 +1,17 @@
+services:
+  satisfactory-container:
+    build: .
+    volumes:
+      - ./satisfactory_data/server:/home/steam/Server  # 전체 서버 데이터
+      - ./satisfactory_data/saves:/home/steam/.config/Epic/FactoryGame/Saved/SaveGames # 게임 세이브 폴더
+      - ./satisfactory_data/ficsit/installations:/home/steam/.local/share/ficsit
+      - ./satisfactory_data/ficsit/cache:/home/steam/.cache/ficsit
+    ports:
+      - "7777:7777/udp"
+      - "15000:15000/udp"
+      - "15777:15777/udp"
+    environment:
+      - STEAM_USER=anonymous
+      - STEAM_PASS=anonymous
+    stdin_open: true
+    tty: true
