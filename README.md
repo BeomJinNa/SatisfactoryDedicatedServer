@@ -1,291 +1,210 @@
-# Satisfactory Dedicated Server with Docker
+# Satisfactory 서버 설치 및 실행 가이드
 
-## 1. 프로젝트 소개
+이 가이드는 쉽게 **Satisfactory 서버**를 설치하고 실행할 수 있도록 도와드립니다. 단계별로 따라오시면 자신의 컴퓨터에서 친구들과 함께 즐길 수 있는 Satisfactory 서버를 구축할 수 있습니다.
 
-#### 목적
-이 프로젝트는 Satisfactory Dedicated Server를 세이브 파일 관리와 모드 설치가 용이하도록 Docker를 이용하여 구축하는 것을 목적으로 합니다.
+---
 
-#### 환경
-- 운영 체제: Windows (WSL2 사용), Linux, macOS
-- 필수 소프트웨어: Docker, Docker Compose, WSL2 (Windows 사용자)
+## 목차
 
-## 2. 사전 준비 사항
+1. [사전 준비 사항](#사전-준비-사항)
+2. [설치 방법](#설치-방법)
+   - [1단계: 저장소 다운로드](#1단계-저장소-다운로드)
+   - [2단계: 터미널 열기](#2단계-터미널-열기)
+   - [3단계: 서버 설치](#3단계-서버-설치)
+   - [4단계: 서버 실행](#4단계-서버-실행)
+   - [5단계: 서버 로그 확인](#5단계-서버-로그-확인)
+3. [서버 접속 방법](#서버-접속-방법)
+4. [자주 묻는 질문](#자주-묻는-질문)
+5. [고급 사용자 안내](#고급-사용자-안내)
+6. [문의 및 지원](#문의-및-지원)
 
-#### 필수 소프트웨어 설치
-프로젝트를 시작하기 전에 다음 소프트웨어를 설치해야 합니다:
+---
 
-- **Docker**: [Docker 공식 사이트](https://www.docker.com/get-started)에서 Docker를 설치합니다.
-- **Docker Compose**: Docker와 함께 제공되며, 별도의 설치가 필요 없습니다.
-- **WSL2 (Windows 사용자)**: [WSL2 설치 가이드](https://docs.microsoft.com/ko-kr/windows/wsl/install) 를 참고하여 WSL2를 설치합니다.
+## 사전 준비 사항
 
-## 3. 프로젝트 구조
+### 시스템 요구 사항
 
-프로젝트는 다음과 같은 디렉토리 및 파일 구조로 구성되어 있습니다:
+- **운영 체제**: Windows 10 이상 (64비트)
+- **메모리(RAM)**: 최소 8GB 이상 권장
+- **디스크 공간**: 최소 10GB 이상의 여유 공간 필요
 
-```
-.
-├── docker-compose.yml
-├── Dockerfile
-├── init.sh
-├── Makefile
-├── README.md
-├── run.sh
-└── satisfactory_data
-    ├── ficsit
-    │   ├── cache
-    │   └── installations
-    ├── saves
-    └── server
-```
+### 필수 소프트웨어
 
-- **docker-compose.yml**: Docker Compose 설정 파일로, 컨테이너의 서비스 정의 및 볼륨 마운트 설정이 포함되어 있습니다.
-- **Dockerfile**: Docker 이미지를 빌드하는 데 사용되는 설정 파일입니다.
-- **init.sh**: 컨테이너 초기화 스크립트입니다.
-- **Makefile**: 자주 사용하는 명령어를 간편하게 실행하기 위한 스크립트입니다.
-- **README.md**: 프로젝트 설명 및 설정 가이드 문서입니다.
-- **run.sh**: 서버 실행 스크립트입니다.
-- **satisfactory_data**: 서버 데이터와 모드를 저장하는 디렉토리입니다.
-  - **ficsit**: ficsit-cli 관련 캐시 및 설정 파일을 저장합니다.
-  - **saves**: Satisfactory 게임 세이브 파일과 서버 설정 데이터를 저장합니다.
-  - **server**: Satisfactory Dedicated Server 파일을 저장합니다.
+1. **WSL2(Windows Subsystem for Linux 2)**
 
-## 4. 설치 및 설정
+   - WSL2는 Windows에서 리눅스 환경을 사용할 수 있게 해주는 기능입니다.
+   - 설치 방법은 다음 링크를 참고하세요: [WSL2 설치 가이드](https://docs.microsoft.com/ko-kr/windows/wsl/install-win10)
 
-#### Setup 스크립트 실행
-프로젝트 디렉토리에 포함된 `setup.sh` 스크립트를 실행하여 필요한 디렉토리를 생성하고, 적절한 권한을 설정합니다. 이 스크립트는 Docker 컨테이너에서 사용할 데이터 저장용 디렉토리를 준비합니다.
+2. **Docker Desktop**
 
-실행 전, 스크립트에 실행 권한을 부여합니다:
+   - Docker는 애플리케이션을 컨테이너로 관리할 수 있게 해주는 도구입니다.
+   - 다음 링크에서 다운로드 및 설치하세요: [Docker Desktop 다운로드](https://www.docker.com/products/docker-desktop)
+
+   **주의**: Docker Desktop 설치 시 WSL2 기반 엔진을 사용하도록 선택해야 합니다.
+
+---
+
+## 설치 방법
+
+### 1단계: 저장소 다운로드
+
+서버 설치에 필요한 파일을 다운로드합니다.
+
+1. **ZIP 파일로 다운로드하기**
+
+   - 이 페이지 상단의 "Code" 버튼을 클릭하고, "Download ZIP"을 선택합니다.
+   - 원하는 위치에 ZIP 파일을 압축 해제합니다.
+
+2. **Git을 사용하는 경우**
+
+   - Git을 설치하셨다면, 터미널에서 다음 명령어를 실행하세요:
+
+     ```bash
+     https://github.com/ColoredEdge/SatisfactoryDedicatedServer.git
+     ```
+
+### 2단계: 터미널 열기
+
+다운로드한 디렉토리로 이동합니다.
+
+- **Windows의 경우**
+
+  - 시작 메뉴에서 **PowerShell** 또는 **명령 프롬프트**를 검색하여 실행합니다.
+  - 명령 창에서 WSL로 진입합니다:
+
+    ```bash
+    wsl
+    ```
+  - 다운로드한 디렉토리로 이동합니다. 예를 들어, 바탕화면에 압축을 풀었다면:
+
+    ```bash
+    cd Desktop/satisfactory-server
+    ```
+
+### 3단계: 서버 설치
+
+터미널에서 다음 명령어를 입력하여 서버 설치를 시작합니다:
+
 ```bash
-chmod +x setup.sh
-./setup.sh
+make install
 ```
 
-이 작업은 프로젝트 최초 설정 시 한 번만 수행하면 됩니다.
+- 이 명령어는 서버 설치에 필요한 모든 과정을 자동으로 수행합니다.
+- 인터넷 연결 상태에 따라 시간이 다소 걸릴 수 있습니다.
+- 설치 과정 중에 다양한 메시지가 표시되며, 오류 없이 완료되면 설치가 성공한 것입니다.
 
-## 5. Docker 컨테이너 빌드 및 실행
+### 4단계: 서버 실행
 
-Docker 컨테이너를 빌드하고 실행하는 과정은 다음과 같습니다:
+서버를 실행하려면 다음 명령어를 입력하세요:
 
-1. **Docker 이미지 빌드**:
-   ```bash
-   make build
-   ```
-   이 명령은 `Dockerfile`에 정의된 지침에 따라 필요한 환경을 갖춘 Docker 이미지를 생성합니다.
-
-2. **Docker 컨테이너 실행**:
-   ```bash
-   make up
-   ```
-   `docker-compose.yml` 파일에 정의된 서비스 설정을 사용하여 Docker 컨테이너를 백그라운드 모드로 실행합니다.
-
-## 6. Docker 컨테이너 및 스크립트 설명
-
-#### Docker 컨테이너 환경
-컨테이너 내부에는 다음과 같은 소프트웨어가 설치되어 있습니다:
-- **curl, wget, unzip**: 파일 다운로드 및 압축 해제를 위한 유틸리티.
-- **sudo**: 관리자 권한으로 명령 실행을 가능하게 합니다.
-- **lib32gcc1**: 32비트 호환성 라이브러리.
-- **neovim**: 텍스트 편집을 위한 고급 에디터.
-- **SteamCMD**: Steam 게임 서버를 설치 및 관리하기 위한 명령줄 인터페이스.
-- **ficsit-cli**: Satisfactory 모드 관리를 위한 CLI 툴.
-
-#### 스크립트 설명
-- **init.sh**: 컨테이너 시작 시 기본적인 환경 설정을 수행하고, `run.sh` 스크립트를 실행합니다. 이 스크립트는 컨테이너의 진입점(ENTRYPOINT)으로 설정되어 있습니다.
-- **run.sh**: Satisfactory 서버를 설치하고 실행하는 주요 스크립트입니다. SteamCMD를 사용하여 서버를 설치하고, 필요한 설정을 적용한 후 서버를 실행합니다.
-
-## 7. 모드 설치 방법
-
-새티스팩토리 서버에 모드를 설치하는 과정은 다음과 같습니다:
-
-1. **컨테이너에 접속**:
-   컨테이너의 이름이나 ID를 확인한 후, Bash 쉘을 통해 컨테이너 내부로 진입합니다.
-   ```bash
-   docker ps  # 컨테이너 목록 확인
-   docker exec -it [컨테이너 ID의 앞 4자리] bash  # 컨테이너에 접속
-   ```
-
-2. **Ficsit-CLI 실행**:
-   Ficsit-CLI는 인터랙티브 모드로 실행되며, 사용자는 명령줄 인터페이스를 통해 모드를 관리할 수 있습니다.
-   ```bash
-   ficsit-cli
-   ```
-
-3. **서버 경로 설정**:
-   Ficsit-CLI 내에서 `Installation`을 선택하고 `/home/steam/Server`를 서버 경로로 입력하여 설정을 완료합니다.
-
-4. **모드 선택 및 설치**:
-   `All Mods` 섹션으로 이동하여 설치하고자 하는 모드를 선택합니다. 선택이 완료되면 `Apply Changes`를 선택하여 설치를 진행합니다.
-
-5. **컨테이너 종료 및 재시작**:
-   모드 설치 후, Ficsit-CLI를 종료하고 컨테이너에서도 `exit`를 입력하여 나옵니다. 이후, Docker 컨테이너를 재시작하여 모드가 적용된 서버를 구동합니다.
-   ```bash
-   make down
-   make up
-   ```
-
-## 8. 세이브 파일 관리
-
-서버의 세이브 파일은 Docker 컨테이너의 마운트된 볼륨에 저장되어 호스트 시스템에서 직접 접근할 수 있습니다. 다음은 세이브 파일 관리를 위한 기본적인 지침입니다:
-
-- **세이브 파일 위치**:
-  세이브 파일은 `satisfactory_data/saves` 디렉토리에 위치합니다. 이 위치는 `docker-compose.yml` 파일에서 정의된 볼륨 설정에 따라 컨테이너와 호스트 간에 동기화됩니다.
-
-## 9. 참고사항
-
-- **포트 포워딩**:
-  서버가 외부에서 접근 가능하도록 하려면 공유기 등의 라우터에서 포트 포워딩 설정이 필요합니다. 아래의 포트를 포워딩하세요:
-  - UDP 포트 7777
-  - UDP 포트 15000
-  - UDP 포트 15777
-
-- **절전 모드**:
-  호스트하는 윈도우 PC에서 절전 모드로 진입할 경우, 절전 모드 해제 시 서버도 자동으로 재개됩니다. 따라서 서버가 계속 동작하도록 보장할 수 있습니다. (PC를 아예 종료하는 경우는 이후에 WSL2 실행 후, 도커를 실행하고 make up을 이용해 서버를 다시 실행해야 합니다.)
-
-- **서버 부하 관리**:
-  데디케이티드 서버는 기본적으로 유저가 없는 동안에는 서버가 중지되고, 유저가 입장할 때만 서버가 구동됩니다. 이 기능 덕분에 컨테이너를 상시 켜두어도 컴퓨터에 큰 부하를 주지 않습니다.
-
-# Satisfactory Dedicated Server with Docker
-
-## 1. Project Introduction
-
-#### Purpose
-The purpose of this project is to set up a Satisfactory Dedicated Server using Docker, facilitating the management of save files and mod installations.
-
-#### Environment
-- Operating Systems: Windows (using WSL2), Linux, macOS
-- Required Software: Docker, Docker Compose, WSL2 (for Windows users)
-
-## 2. Prerequisites
-
-#### Required Software Installation
-Before starting the project, you need to install the following software:
-
-- **Docker**: Install Docker from the [official Docker website](https://www.docker.com/get-started).
-- **Docker Compose**: Provided with Docker, no separate installation needed.
-- **WSL2 (for Windows users)**: Follow the [WSL2 installation guide](https://docs.microsoft.com/en-us/windows/wsl/install) to set up WSL2.
-
-## 3. Project Structure
-
-The project consists of the following directory and file structure:
-
-```
-.
-├── docker-compose.yml
-├── Dockerfile
-├── init.sh
-├── Makefile
-├── README.md
-├── run.sh
-└── satisfactory_data
-    ├── ficsit
-    │   ├── cache
-    │   └── installations
-    ├── saves
-    └── server
-```
-
-- **docker-compose.yml**: Defines the services, volume mounts, and other settings for Docker Compose.
-- **Dockerfile**: Used to build the Docker image.
-- **init.sh**: Initialization script for the container.
-- **Makefile**: Provides shortcuts for commonly used commands.
-- **README.md**: Project description and setup guide.
-- **run.sh**: Main script to install and run the server.
-- **satisfactory_data**: Directory for server data and mods.
-  - **ficsit**: Stores cache and configuration files for ficsit-cli.
-  - **saves**: Stores Satisfactory game save files and server configuration data.
-  - **server**: Stores the Satisfactory Dedicated Server files.
-
-## 4. Setup and Configuration
-
-#### Running the Setup Script
-Run the `setup.sh` script included in the project directory to create the necessary directories and set appropriate permissions. This script prepares the data directories for use within the Docker container.
-
-Before running, grant execution permissions to the script:
 ```bash
-chmod +x setup.sh
-./setup.sh
+make up
 ```
 
-This step only needs to be performed once during the initial setup.
+- 서버가 백그라운드에서 실행됩니다.
+- 서버를 중지하려면 다음 명령어를 사용할 수 있습니다:
 
-## 5. Building and Running the Docker Container
+  ```bash
+  make down
+  ```
 
-Follow these steps to build and run the Docker container:
+### 5단계: 서버 로그 확인
 
-1. **Build the Docker image**:
-   ```bash
-   make build
-   ```
-   This command generates the Docker image based on the instructions defined in the `Dockerfile`.
+서버가 정상적으로 실행되고 있는지 확인하려면 다음 명령어를 입력하세요:
 
-2. **Run the Docker container**:
-   ```bash
-   make up
-   ```
-   This command starts the Docker container in the background using the service settings defined in the `docker-compose.yml` file.
+```bash
+make logs
+```
 
-## 6. Docker Container and Script Descriptions
+- 서버의 실시간 로그를 확인할 수 있습니다.
+- 로그 출력을 중지하려면 **`Ctrl + C`**를 누르세요.
 
-#### Docker Container Environment
-The following software is installed inside the container:
-- **curl, wget, unzip**: Utilities for downloading and extracting files.
-- **sudo**: Allows commands to be run with administrative privileges.
-- **lib32gcc1**: 32-bit compatibility library.
-- **neovim**: Advanced text editor.
-- **SteamCMD**: Command-line interface for installing and managing Steam game servers.
-- **ficsit-cli**: CLI tool for managing Satisfactory mods.
+---
 
-#### Script Descriptions
-- **init.sh**: Performs basic environment setup when the container starts and runs the `run.sh` script. This script is set as the entry point for the container.
-- **run.sh**: Main script for installing and running the Satisfactory server. It uses SteamCMD to install the server, applies necessary configurations, and then runs the server.
+## 서버 접속 방법
 
-## 7. Installing Mods
+이제 Satisfactory 게임 내에서 서버에 접속할 수 있습니다.
 
-To install mods on the Satisfactory server, follow these steps:
+1. **게임 실행**
 
-1. **Access the container**:
-   Identify the container name or ID, then enter the container using a Bash shell.
-   ```bash
-   docker ps  # List running containers
-   docker exec -it [first 4 characters of container ID] bash  # Access the container
-   ```
+   - Satisfactory 게임을 실행합니다.
 
-2. **Run Ficsit-CLI**:
-   Launch Ficsit-CLI in interactive mode to manage mods.
-   ```bash
-   ficsit-cli
-   ```
+2. **서버 추가**
 
-3. **Set the server path**:
-   In Ficsit-CLI, select `Installation` and enter `/home/steam/Server` as the server path, then select `Select` to complete the configuration.
+   - 메인 메뉴에서 **"Server Manager"** 또는 **"서버 관리자"**를 선택합니다.
+   - **"Add Server"** 또는 **"서버 추가"** 버튼을 클릭합니다.
+   - **IP 주소**에 `localhost` 또는 서버가 실행 중인 컴퓨터의 IP 주소를 입력합니다.
+   - **포트 번호**는 기본값인 `7777`을 사용합니다.
+   - **"Confirm"** 또는 **"확인"** 버튼을 클릭하여 서버를 추가합니다.
 
-4. **Select and install mods**:
-   Navigate to `All Mods`, select the desired mods, then select `Apply Changes` to install the mods.
+3. **서버 접속**
 
-5. **Exit the container and restart it**:
-   After installing mods, exit Ficsit-CLI, and type `exit` to leave the container. Restart the Docker container to apply the mods.
-   ```bash
-   make down
-   make up
-   ```
+   - 추가한 서버를 선택하고 **"Connect"** 또는 **"접속"** 버튼을 클릭합니다.
+   - 게임 내에서 서버에 접속하여 플레이할 수 있습니다.
 
-## 8. Managing Save Files
+**참고**: 다른 컴퓨터에서 서버에 접속하려면 서버가 실행 중인 컴퓨터의 IP 주소를 사용해야 합니다. 또한, 방화벽 설정에서 **포트 7777**이 열려 있어야 외부에서 접속이 가능합니다.
 
-The server's save files are stored in a mounted volume accessible from the host system. Here are the basic guidelines for managing save files:
+---
 
-- **Save file location**:
-  Save files are located in the `satisfactory_data/saves` directory. This location is synchronized between the container and the host system according to the volume settings defined in the `docker-compose.yml` file.
+## 자주 묻는 질문
 
-## 9. Additional Notes
+### Q1. 설치 중 오류가 발생합니다.
 
-- **Port Forwarding**:
-  To make the server accessible from outside, configure port forwarding on your router for the following ports:
-  - UDP port 7777
-  - UDP port 15000
-  - UDP port 15777
+- **A**: Docker Desktop이 정상적으로 실행 중인지 확인하세요. Docker가 제대로 설치되어 있지 않거나 실행되고 있지 않으면 오류가 발생할 수 있습니다.
 
-- **Sleep Mode**:
-  When the host Windows PC enters sleep mode, the server will automatically resume when sleep mode is exited. This ensures that the server remains operational. (If the PC is completely shut down, you need to restart WSL2, Docker, and use `make up` to restart the server.)
+### Q2. 서버가 실행되지 않습니다.
 
-- **Server Load Management**:
-  The dedicated server stops when no users are connected and starts only when a user joins. This feature ensures that keeping the container running does not put a significant load on your computer.
+- **A**: `make logs` 명령어로 서버 로그를 확인하세요. 에러 메시지가 표시된다면 해당 내용을 참고하여 문제를 해결할 수 있습니다.
+
+### Q3. 서버 설정을 변경하고 싶어요.
+
+- **A**: `satisfactory_data/config` 디렉토리에 있는 설정 파일을 수정하시면 됩니다. 설정을 변경한 후에는 서버를 재시작해야 합니다:
+
+  ```bash
+  make restart
+  ```
+
+### Q4. 서버를 업데이트하려면 어떻게 하나요?
+
+- **A**: 다음 명령어로 서버를 업데이트할 수 있습니다:
+
+  ```bash
+  make update
+  ```
+
+  업데이트가 완료되면 서버를 재시작하세요.
+
+---
+
+## 고급 사용자 안내
+
+### Docker 볼륨 사용
+
+- **WSL2 환경이 아닌 리눅스 사용자**는 `docker-compose.yml` 파일에서 볼륨 설정을 Docker 볼륨으로 변경하여 사용할 수 있습니다.
+
+### 서버 데이터 백업 및 복구
+
+- 서버 데이터는 `satisfactory_data` 디렉토리에 저장됩니다.
+- 중요한 데이터는 정기적으로 백업하시기 바랍니다.
+
+### 환경 변수 설정
+
+- `docker-compose.yml` 파일에서 환경 변수를 수정하여 서버 설정을 변경할 수 있습니다.
+
+  ```yaml
+  environment:
+    - STEAM_USER=anonymous
+    - STEAM_PASS=
+    - SATISFACTORY_DB_CODE=1690800
+  ```
+
+- 필요에 따라 Steam 계정 정보를 입력하여 서버를 설치할 수 있습니다.
+
+---
+
+## 문의 및 지원
+
+- 문제가 발생하거나 도움이 필요하시면 **이슈 트래커**에 이슈를 등록해 주세요.
+- 기여하거나 개선 사항이 있으시다면 **풀 리퀘스트**를 보내주시면 감사하겠습니다.
+
+**즐거운 게임 되세요!**

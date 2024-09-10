@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# 초기화 작업
-echo "Initializing Satisfactory Server"
+echo "Starting init script"
 
 # run.sh 실행
 exec /home/steam/run.sh
